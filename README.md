@@ -6,7 +6,7 @@
 [![Codecov](https://codecov.io/gh/christopher-dG/markdown-tables/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/markdown-tables)
 
 
-### Utilities for creating and displaying Markdown tables in Ruby.
+**Utilities for creating and displaying Markdown tables in Ruby.**
 
 ## Installation
 * `gem install markdown-tables`
