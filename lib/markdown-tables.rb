@@ -36,9 +36,16 @@ class MarkdownTables
   # Convert a Markdown table into human-readable form.
   def self.plain_text(md_table)
     lines = md_table.split("\n")
-    labels = lines[0].split('|')
     alignments = lines[1].split('|')
+    table_width = alignments.length
+
+    # Add back any any missing empty cells.
+    labels = lines[0].split('|')
+    labels.length < table_width && labels += [' '] * (table_width - labels.length)
     rows = lines[2..-1].map {|line| line.split('|')}
+    rows.each_index do |i|
+      rows[i].length < table_width && rows[i] += [' '] * (table_width - rows[i].length)
+    end
 
     # Replace non-breaking HTML characters with their plaintext counterparts.
     rows.each do |row|
@@ -90,13 +97,11 @@ class MarkdownTables
   # Sanity checks for make_table.
   private_class_method def self.validate(labels, data, align, is_rows)
     if labels.class != Array
-      raise('labels must be an Array')
+      raise('labels must be an array')
     elsif data.class != Array || data.any? {|datum| datum.class != Array}
       raise('data must be a two-dimensional array')
     elsif labels.empty?
       raise('No column labels given')
-    elsif data.empty?
-      raise('No columns given')
     elsif data.all? {|datum| datum.empty?}
       raise('No cells given')
     elsif labels.any? {|label| !label.respond_to?(:to_s)}
@@ -104,9 +109,9 @@ class MarkdownTables
     elsif data.any? {|datum| datum.any? {|cell| !cell.respond_to?(:to_s)}}
       raise('One or more cells cannot be made into a string')
     elsif ![String, Array].include?(align.class)
-      raise('align must be a String or Array')
+      raise('align must be a string or array')
     elsif align.class == Array && align.any? {|val| val.class != String}
-      raise('One or more align values is not a String')
+      raise('One or more align values is not a string')
     elsif !is_rows && data.length > labels.length
       raise('Too many data columns given')
     elsif is_rows && data.any? {|row| row.length > labels.length}
