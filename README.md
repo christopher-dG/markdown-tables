@@ -62,10 +62,10 @@ puts MarkdownTables.plain_text(table)
 # |===============|=========|==========|
 # | unnecessarily | lengthy | sentence |
 # |===============|=========|==========|
-# |           the |   fox   | the      |
+# |           the |  quick  | brown    |
 # |---------------|---------|----------|
-# |         quick |  jumps  | lazy     |
+# |           fox |  jumps  | over     |
 # |---------------|---------|----------|
-# |         brown |  over   | dog      |
+# |           the |  lazy   | dog      |
 # |===============|=========|==========|
 ```
