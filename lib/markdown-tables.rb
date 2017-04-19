@@ -6,92 +6,75 @@ class MarkdownTables
   # Pass align: 'l' for left alignment or 'r' for right  alignment. Anything
   # else will result in cells being centered. Pass an array of align values
   # to specify alignment per column.
-  # If is_rows is true, then each sub-array represents a row.
+  # If is_rows is true, then each sub-array of data represents a row.
   # Conversely, if is_rows is false, each sub-array of data represents a column.
   # Empty cells can be given with nil or an empty string.
   def self.make_table(labels, data, align: '', is_rows: false)
+    validate(labels, data, align, is_rows)
+
+    # Deep copy the arguments so we don't mutate the originals.
     labels = Marshal.load(Marshal.dump(labels))
     data = Marshal.load(Marshal.dump(data))
-    validate(labels, data, align, is_rows)
-    sanitize!(labels, data)
 
+    # Remove any breaking Markdown characters.
+    labels.map! {|label| sanitize(label)}
+    data.map! {|datum| datum.map {|cell| sanitize(cell)}}
+
+    # Convert align to something that other methods won't need to validate.
+    align.class == String && align = [align] * labels.length
+    align.map! {|a| a =~ /[lr]/i ? a.downcase : 'c'}
+
+    # Generate the column labels and alignment line.
     header_line = labels.join('|')
-    alignment_line = alignment(align, labels.length)
+    alignment_line = parse_alignment(align, labels.length)
 
-    if is_rows
-      rows = data.map {|row| row.join('|')}
-    else
-      max_len = data.map(&:size).max
-      rows = []
-      max_len.times do |i|
-        row = []
-        data.each {|col| row.push(col[i])}
-        rows.push(row.join('|'))
-      end
-    end
+    # Pad the data arrays so that it can be transposed if necessary.
+    max_len = data.map(&:length).max
+    data.map! {|datum| fill(datum, max_len)}
+
+    # Generate the table rows.
+    rows = (is_rows ? data : data.transpose).map {|row| row.join('|')}
 
     return [header_line, alignment_line, rows.join("\n")].join("\n")
   end
 
   # Convert a Markdown table into human-readable form.
   def self.plain_text(md_table)
+    md_table !~ // && raise('Invalid input')
+
+    # Split the table into lines to get the labels, rows, and alignments.
     lines = md_table.split("\n")
     alignments = lines[1].split('|')
+    # labels or rows might have some empty values but alignments
+    # is guaranteed to be of the right width.
     table_width = alignments.length
-
-    # Add back any any missing empty cells.
-    labels = lines[0].split('|')
-    labels.length < table_width && labels += [' '] * (table_width - labels.length)
-    rows = lines[2..-1].map {|line| line.split('|')}
-    rows.each_index do |i|
-      rows[i].length < table_width && rows[i] += [' '] * (table_width - rows[i].length)
-    end
-
-    # Replace non-breaking HTML characters with their plaintext counterparts.
-    rows.each do |row|
-      row.each do |cell|
-        cell.gsub!(/(&nbsp;)|(&#124;)/, '&nbsp;' => ' ', '&#124;' => '|')
-      end
-    end
+    # '|||'.split('|') == [], so we need to manually add trailing empty cells.
+    # Leading empty cells are taken care of automatically.
+    labels = fill(lines[0].split('|'), table_width)
+    rows = lines[2..-1].map {|line| fill(line.split('|'), table_width)}
 
     # Get the width for each column.
-    widths = labels.map(&:length)  # Lengths of each column's longest element.
-    rows.length.times do |i|
-      rows[i].length.times do |j|
-        rows[i][j].length > widths[j] && widths[j] = rows[i][j].length
-      end
-    end
-    widths.map! {|w| w + 2}  # Add padding on each side.
+    cols = rows.transpose
+    widths = cols.each_index.map {|i| column_width(cols[i].push(labels[i]))}
 
-    # Align the column labels.
-    labels.length.times do |i|
-      label_length = labels[i].length
-      start = align_cell(label_length, widths[i], alignments[i])
-
-      labels[i].prepend(' ' * start)
-      labels[i] += ' ' * (widths[i] - start - label_length)
-    end
-
-    # Align the cells.
-    rows.each do |row|
-      row.length.times do |i|
-        cell_length = row[i].length
-        start = align_cell(cell_length, widths[i], alignments[i])
-        row[i].prepend(' ' * start)
-        row[i] += ' ' * (widths[i] - start - cell_length)
-      end
-    end
+    # Align the labels and cells.
+    labels = labels.each_index.map { |i|
+      aligned_cell(unsanitize(labels[i]), widths[i], alignments[i])
+    }
+    rows.map! { |row|
+      row.each_index.map { |i|
+        aligned_cell(unsanitize(row[i]), widths[i], alignments[i])
+      }
+    }
 
     border = "\n|" + widths.map {|w| '=' * w}.join('|') + "|\n"
-    separator = border.gsub('=', '-')
+    return (
+      border + [
+        '|' + labels.join('|') + '|',
+        rows.map {|row| '|' + row.join('|') + '|'}.join(border.tr('=', '-'))
+      ].join(border) + border
+    ).strip
 
-    table = border[1..-1]  # Don't include the first newline.
-    table += '|' + labels.join('|') + '|'
-    table += border
-    table += rows.map {|row| '|' + row.join('|') + '|'}.join(separator)
-    table += border
-
-    return table.chomp
   end
 
   # Sanity checks for make_table.
@@ -119,43 +102,51 @@ class MarkdownTables
     end
   end
 
-  # Convert all input to strings and replace  any '|' characters  with
-  # non-breaking equivalents,
-  private_class_method def self.sanitize!(labels, data)
+  # Convert some input to a string and replace any '|' characters  with
+  # a non-breaking equivalent,
+  private_class_method def self.sanitize(input)
     bar = '&#124;'  # Non-breaking HTML vertical bar.
-    labels.map! {|label| label.to_s.gsub('|', bar)}
-    data.length.times {|i| data[i].map! {|cell| cell.to_s.gsub('|', bar)}}
+    return input.to_s.gsub('|', bar)
+  end
+
+  # Replace non-breaking HTML characters with their plaintext counterparts.
+  private_class_method def self.unsanitize(input)
+    return input.gsub(/(&nbsp;)|(&#124;)/, '&nbsp;' => ' ', '&#124;' => '|')
   end
 
   # Generate the alignment line from a string or array.
-  # align must be a string or array or strings.
+  # align must be a string or array of strings.
   # n: number of labels in the table to be created.
-  private_class_method def self.alignment(align, n)
-    if align.class == String
-      alignment = align == 'l' ? ':-' : align == 'r' ? '-:' : ':-:'
-      alignment_line = ([alignment] * n).join('|')
-    else
-      alignments = align.map {
-        |a| a.downcase == 'l' ? ':-' : a.downcase == 'r' ? '-:' : ':-:'
-      }
-      if alignments.length < n
-        alignments += [':-:'] * (n - alignments.length)
-      end
-      alignment_line = alignments.join('|')
-    end
-    return alignment_line
+  private_class_method def self.parse_alignment(align, n)
+    align_map = {'l' => ':-', 'c' => ':-:', 'r' => '-:'}
+    alignments = align.map {|a| align_map[a]}
+    # If not enough values were given, center the remaining columns.
+    alignments.length < n && alignments += [':-:'] * (n - alignments.length)
+    return alignments.join('|')
   end
 
-  # Get the starting index of a cell's text from the text's length, the cell's
-  # width, and the alignment.
-  private_class_method def self.align_cell(length, width, align)
-    if align =~ /:-+:/
-      return (width / 2) - (length / 2)
-    elsif align =~ /-+:/
-      return width - length - 1
-    else
-      return 1
+  # Align some text in a cell.
+  private_class_method def self.aligned_cell(text, width, align)
+    if align =~ /:-+:/  # Center alignment.
+      start = (width / 2) - (text.length / 2)
+    elsif align =~ /-+:/  # Right alignment.
+      start = width - text.length - 1
+    else  # Left alignment.
+      start = 1
     end
+    return ' ' * start + text + ' ' * (width - start - text.length)
+  end
+
+  # Get the width for a column.
+  private_class_method def self.column_width(col)
+    # Pad each cell on either side and maintain a minimum 3 width of characters.
+    return [(!col.empty? ? col.map(&:length).max : 0) + 2, 3].max
+  end
+
+  # Add any missing empty values to a row.
+  private_class_method def self.fill(row, n)
+    row.length > n && raise('Sanity checks failed for fill')
+    return row.length < n ? row + ([''] * (n - row.length)) : row
   end
 
 end
