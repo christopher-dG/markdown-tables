@@ -4,7 +4,6 @@
 [![Travis CI](https://travis-ci.org/christopher-dG/markdown-tables.svg?branch=master)](https://travis-ci.org/christopher-dG/markdown-tables)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/sfqh4ouq46qjuxvx/branch/master?svg=true)](https://ci.appveyor.com/project/christopher-dG/markdown-tables/branch/master)
 [![Codecov](https://codecov.io/gh/christopher-dG/markdown-tables/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/markdown-tables)
-[![Code Climate](https://codeclimate.com/github/christopher-dG/markdown-tables.png)](https://codeclimate.com/github/christopher-dG/markdown-tables)
 
 **Utilities for creating and displaying Markdown tables in Ruby.**
 

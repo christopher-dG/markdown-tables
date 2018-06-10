@@ -81,23 +81,32 @@ class MarkdownTables
   private_class_method def self.validate(labels, data, align, is_rows)
     if labels.class != Array
       raise('labels must be an array')
-    elsif data.class != Array || data.any? {|datum| datum.class != Array}
+    end
+    if data.class != Array || data.any? {|datum| datum.class != Array}
       raise('data must be a two-dimensional array')
-    elsif labels.empty?
+    end
+    if labels.empty?
       raise('No column labels given')
-    elsif data.all? {|datum| datum.empty?}
+    end
+    if data.all? {|datum| datum.empty?}
       raise('No cells given')
-    elsif labels.any? {|label| !label.respond_to?(:to_s)}
+    end
+    if labels.any? {|label| !label.respond_to?(:to_s)}
       raise('One or more column labels cannot be made into a string')
-    elsif data.any? {|datum| datum.any? {|cell| !cell.respond_to?(:to_s)}}
+    end
+    if data.any? {|datum| datum.any? {|cell| !cell.respond_to?(:to_s)}}
       raise('One or more cells cannot be made into a string')
-    elsif ![String, Array].include?(align.class)
+    end
+    if ![String, Array].include?(align.class)
       raise('align must be a string or array')
-    elsif align.class == Array && align.any? {|val| val.class != String}
+    end
+    if align.class == Array && align.any? {|val| val.class != String}
       raise('One or more align values is not a string')
-    elsif !is_rows && data.length > labels.length
+    end
+    if !is_rows && data.length > labels.length
       raise('Too many data columns given')
-    elsif is_rows && data.any? {|row| row.length > labels.length}
+    end
+    if is_rows && data.any? {|row| row.length > labels.length}
       raise('One or more rows has too many cells')
     end
   end
