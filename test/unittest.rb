@@ -76,11 +76,11 @@ class TestMarkdownTables < Test::Unit::TestCase
   end
 
   def test_parse_alignment
-    assert_equal(MarkdownTables.send(:parse_alignment, ['l'], 1), ':-')
-    assert_equal(MarkdownTables.send(:parse_alignment, ['c'], 1), ':-:')
-    assert_equal(MarkdownTables.send(:parse_alignment, ['r'], 1), '-:')
-    assert_equal(MarkdownTables.send(:parse_alignment, ['l', 'c', 'r'], 3), ':-|:-:|-:')
-    assert_equal(MarkdownTables.send(:parse_alignment, ['r'], 3), '-:|:-:|:-:')
+    assert_equal(MarkdownTables.send(:parse_alignment, ['l'], 1), '|:-|')
+    assert_equal(MarkdownTables.send(:parse_alignment, ['c'], 1), '|:-:|')
+    assert_equal(MarkdownTables.send(:parse_alignment, ['r'], 1), '|-:|')
+    assert_equal(MarkdownTables.send(:parse_alignment, ['l', 'c', 'r'], 3), '|:-|:-:|-:|')
+    assert_equal(MarkdownTables.send(:parse_alignment, ['r'], 3), '|-:|:-:|:-:|')
   end
 
   def test_make_table
@@ -88,26 +88,26 @@ class TestMarkdownTables < Test::Unit::TestCase
     data = [[1, 2, 3], [4, 5, 6], [7 ,8, 9]]
     assert_equal(
       MarkdownTables.make_table(labels, data),
-      "a|b|c\n:-:|:-:|:-:\n1|4|7\n2|5|8\n3|6|9",
+      "|a|b|c|\n|:-:|:-:|:-:|\n|1|4|7|\n|2|5|8|\n|3|6|9|",
     )
     assert_equal(
       MarkdownTables.make_table(labels, data, align: 'l'),
-      "a|b|c\n:-|:-|:-\n1|4|7\n2|5|8\n3|6|9",
+      "|a|b|c|\n|:-|:-|:-|\n|1|4|7|\n|2|5|8|\n|3|6|9|",
     )
     assert_equal(
       MarkdownTables.make_table(labels, data, is_rows: true),
-      "a|b|c\n:-:|:-:|:-:\n1|2|3\n4|5|6\n7|8|9",
+      "|a|b|c|\n|:-:|:-:|:-:|\n|1|2|3|\n|4|5|6|\n|7|8|9|",
     )
     data = [[1], [4, nil, 6], [7, 8, '']]
     assert_equal(
       MarkdownTables.make_table(labels, data),
-      "a|b|c\n:-:|:-:|:-:\n1|4|7\n||8\n|6|",
+      "|a|b|c|\n|:-:|:-:|:-:|\n|1|4|7|\n|||8|\n||6||",
     )
     labels = [nil, nil, nil]
     data = [[nil, nil, nil], [nil, nil, nil], [nil, nil, nil]]
     assert_equal(
       MarkdownTables.make_table(labels, data),
-      "||\n:-:|:-:|:-:\n||\n||\n||",
+      "||||\n|:-:|:-:|:-:|\n||||\n||||\n||||",
     )
   end
 
