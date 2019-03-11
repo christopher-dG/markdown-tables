@@ -32,18 +32,18 @@ labels = ['a', 'b', 'c']
 data = [[1, 2, 3], [4 ,5, 6], [7, 8, 9]]
 
 puts MarkdownTables.make_table(labels, data)
-# a|b|c
-# :-:|:-:|:-:
-# 1|4|7
-# 2|5|8
-# 3|6|9
+# |a|b|c|
+# |:-:|:-:|:-:|
+# |1|4|7|
+# |2|5|8|
+# |3|6|9|
 
 puts MarkdownTables.make_table(labels, data, is_rows: true)
-# a|b|c
-# :-:|:-:|:-:
-# 1|2|3
-# 4|5|6
-# 7|8|9
+# |a|b|c|
+# |:-:|:-:|:-:|
+# |1|2|3|
+# |4|5|6|
+# |7|8|9|
 ```
 
 ### `plain_text`

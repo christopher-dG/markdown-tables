@@ -25,7 +25,7 @@ class MarkdownTables
     align.map! {|a| a =~ /[lr]/i ? a.downcase : 'c'}
 
     # Generate the column labels and alignment line.
-    header_line = labels.join('|')
+    header_line = labels.join('|').prepend('|') << '|'
     alignment_line = parse_alignment(align, labels.length)
 
     # Pad the data arrays so that it can be transposed if necessary.
@@ -33,7 +33,7 @@ class MarkdownTables
     data.map! {|datum| fill(datum, max_len)}
 
     # Generate the table rows.
-    rows = (is_rows ? data : data.transpose).map {|row| row.join('|')}
+    rows = (is_rows ? data : data.transpose).map {|row| row.join('|').prepend('|') << '|' }
 
     return [header_line, alignment_line, rows.join("\n")].join("\n")
   end
@@ -131,7 +131,7 @@ class MarkdownTables
     alignments = align.map {|a| align_map[a]}
     # If not enough values were given, center the remaining columns.
     alignments.length < n && alignments += [':-:'] * (n - alignments.length)
-    return alignments.join('|')
+    return alignments.join('|').prepend('|') << '|'
   end
 
   # Align some text in a cell.
