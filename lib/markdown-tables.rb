@@ -43,7 +43,7 @@ class MarkdownTables
     md_table !~ // && raise('Invalid input')
 
     # Split the table into lines to get the labels, rows, and alignments.
-    lines = md_table.split("\n")
+    lines = md_table.split("\n").map { |l| l.gsub(/^\||\|$/, '') }
     alignments = lines[1].split('|')
     # labels or rows might have some empty values but alignments
     # is guaranteed to be of the right width.
