@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'markdown-tables'
-  s.version     = '1.1.0'
+  s.version     = '1.1.1'
   s.summary     = 'Utilities for creating and displaying Markdown tables in Ruby'
   s.authors     = ['Chris de Graaf']
   s.email       = 'chrisadegraaf@gmail.com'
