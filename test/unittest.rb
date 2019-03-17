@@ -113,19 +113,19 @@ class TestMarkdownTables < Test::Unit::TestCase
 
   def test_plain_text
     assert_equal(
-      MarkdownTables.plain_text("a|b|c\n:-:|:-:|:-:\n1|2|3\n4|5|6\n7|8|9"),
+      MarkdownTables.plain_text("|a|b|c|\n|:-:|:-:|:-:|\n|1|2|3|\n|4|5|6|\n|7|8|9|"),
       "|===|===|===|\n| a | b | c |\n|===|===|===|\n| 1 | 2 | 3 |\n|---|---|---|\n| 4 | 5 | 6 |\n|---|---|---|\n| 7 | 8 | 9 |\n|===|===|===|",
     )
     assert_equal(
-      MarkdownTables.plain_text("aaaaa|bbbbb|ccccc\n-:|:-:|:-\n1|2|3\n4|5|6\n7|8|9"),
+      MarkdownTables.plain_text("|aaaaa|bbbbb|ccccc|\n|-:|:-:|:-|\n|1|2|3|\n|4|5|6|\n|7|8|9|"),
       "|=======|=======|=======|\n| aaaaa | bbbbb | ccccc |\n|=======|=======|=======|\n|     1 |   2   | 3     |\n|-------|-------|-------|\n|     4 |   5   | 6     |\n|-------|-------|-------|\n|     7 |   8   | 9     |\n|=======|=======|=======|",
     )
     assert_equal(
-      MarkdownTables.plain_text("a|b|c\n:-:|:-:|:-:\n1|4|7\n||8\n|6|"),
+      MarkdownTables.plain_text("|a|b|c|\n|:-:|:-:|:-:|\n|1|4|7|\n|||8|\n||6||"),
       "|===|===|===|\n| a | b | c |\n|===|===|===|\n| 1 | 4 | 7 |\n|---|---|---|\n|   |   | 8 |\n|---|---|---|\n|   | 6 |   |\n|===|===|===|",
     )
     assert_equal(
-      MarkdownTables.plain_text("||\n:-:|:-:|:-:\n||\n||\n||"),
+      MarkdownTables.plain_text("||||\n|:-:|:-:|:-:|\n||||\n||||\n||||"),
       "|===|===|===|\n|   |   |   |\n|===|===|===|\n|   |   |   |\n|---|---|---|\n|   |   |   |\n|---|---|---|\n|   |   |   |\n|===|===|===|"
     )
   end
