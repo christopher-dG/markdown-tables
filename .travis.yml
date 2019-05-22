@@ -1,14 +1,5 @@
 language: ruby
-
-os:
-  - linux
-  - osx
-
-rvm:
-  - 2.4
-  - 2.5
-  - ruby-head
-
-install: gem install test-unit codecov
-
+rvm: [2.4, 2.5, 2.6, ruby-head]
+install: gem install codecov test-unit
 script: ruby test/unittest.rb
+notifications: {email: false}
